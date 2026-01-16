@@ -24,9 +24,12 @@ class CategoryController {
         try {
             $categories = $this->category->getActive();
             Response::success($categories, 'Categories retrieved successfully');
+        } catch (PDOException $e) {
+            error_log("CategoryController::getActive Database Error: " . $e->getMessage());
+            Response::error('Database error: ' . $e->getMessage(), 500);
         } catch (Exception $e) {
             error_log("CategoryController::getActive Error: " . $e->getMessage());
-            Response::error('Failed to retrieve categories', 500);
+            Response::error('Failed to retrieve categories: ' . $e->getMessage(), 500);
         }
     }
     

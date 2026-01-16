@@ -26,20 +26,31 @@ class Blog {
     public function getPublishedBlogs($page = 1, $perPage = 10, $categorySlug = null, $featured = null) {
         $offset = ($page - 1) * $perPage;
         
-        $sql = "SELECT * FROM v_published_blogs WHERE 1=1";
+        // Use direct query (works even if view doesn't exist)
+        // Use COALESCE to prefer image_url, fallback to featured_image
+        $sql = "SELECT 
+                    b.id, b.title, b.slug, b.content, b.excerpt, 
+                    COALESCE(b.image_url, b.featured_image) AS image_url,
+                    b.featured_image,
+                    b.is_featured, b.views_count, b.published_at, b.created_at, b.updated_at,
+                    c.name AS category_name, c.slug AS category_slug, c.icon AS category_icon
+                FROM blogs b
+                LEFT JOIN categories c ON b.category_id = c.id
+                WHERE b.is_published = TRUE";
+        
         $params = [];
         
         if ($categorySlug !== null) {
-            $sql .= " AND category_slug = :category_slug";
+            $sql .= " AND c.slug = :category_slug";
             $params[':category_slug'] = $categorySlug;
         }
         
         if ($featured !== null) {
-            $sql .= " AND is_featured = :is_featured";
+            $sql .= " AND b.is_featured = :is_featured";
             $params[':is_featured'] = $featured ? 1 : 0;
         }
         
-        $sql .= " ORDER BY published_at DESC LIMIT :limit OFFSET :offset";
+        $sql .= " ORDER BY b.published_at DESC LIMIT :limit OFFSET :offset";
         
         $stmt = $this->db->prepare($sql);
         
@@ -62,16 +73,20 @@ class Blog {
      * @return int
      */
     public function getPublishedBlogsCount($categorySlug = null, $featured = null) {
-        $sql = "SELECT COUNT(*) as total FROM v_published_blogs WHERE 1=1";
+        // Use direct query (works even if view doesn't exist)
+        $sql = "SELECT COUNT(*) as total FROM blogs b
+                LEFT JOIN categories c ON b.category_id = c.id
+                WHERE b.is_published = TRUE";
+        
         $params = [];
         
         if ($categorySlug !== null) {
-            $sql .= " AND category_slug = :category_slug";
+            $sql .= " AND c.slug = :category_slug";
             $params[':category_slug'] = $categorySlug;
         }
         
         if ($featured !== null) {
-            $sql .= " AND is_featured = :is_featured";
+            $sql .= " AND b.is_featured = :is_featured";
             $params[':is_featured'] = $featured ? 1 : 0;
         }
         
@@ -92,7 +107,19 @@ class Blog {
      * @return array|null
      */
     public function getBySlug($slug) {
-        $sql = "SELECT * FROM v_published_blogs WHERE slug = :slug LIMIT 1";
+        // Use direct query (works even if view doesn't exist)
+        // Use COALESCE to prefer image_url, fallback to featured_image
+        $sql = "SELECT 
+                    b.id, b.title, b.slug, b.content, b.excerpt, 
+                    COALESCE(b.image_url, b.featured_image) AS image_url,
+                    b.featured_image,
+                    b.is_featured, b.views_count, b.published_at, b.created_at, b.updated_at,
+                    c.name AS category_name, c.slug AS category_slug, c.icon AS category_icon
+                FROM blogs b
+                LEFT JOIN categories c ON b.category_id = c.id
+                WHERE b.slug = :slug AND b.is_published = TRUE
+                LIMIT 1";
+        
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':slug', $slug);
         $stmt->execute();

@@ -16,8 +16,12 @@ $envFile = __DIR__ . '/../.env';
 if (file_exists($envFile)) {
     $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
-        if (strpos(trim($line), '#') === 0) {
-            continue; // Skip comments
+        $line = trim($line);
+        if (empty($line) || strpos($line, '#') === 0) {
+            continue; // Skip comments and empty lines
+        }
+        if (strpos($line, '=') === false) {
+            continue; // Skip invalid lines
         }
         list($name, $value) = explode('=', $line, 2);
         $_ENV[trim($name)] = trim($value);
@@ -51,8 +55,12 @@ function getDBConnection() {
             
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
-            error_log("Database Connection Error: " . $e->getMessage());
-            throw new PDOException("Database connection failed", 0, $e);
+            $errorMsg = "Database Connection Error: " . $e->getMessage();
+            error_log($errorMsg);
+            error_log("DB_HOST: " . DB_HOST);
+            error_log("DB_NAME: " . DB_NAME);
+            error_log("DB_USER: " . DB_USER);
+            throw new PDOException("Database connection failed: " . $e->getMessage(), 0, $e);
         }
     }
     

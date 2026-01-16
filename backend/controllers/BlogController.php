@@ -31,9 +31,12 @@ class BlogController {
             $total = $this->blog->getPublishedBlogsCount($categorySlug, $featured);
             
             Response::paginated($blogs, $page, $perPage, $total, 'Blogs retrieved successfully');
+        } catch (PDOException $e) {
+            error_log("BlogController::getPublishedBlogs Database Error: " . $e->getMessage());
+            Response::error('Database error: ' . $e->getMessage(), 500);
         } catch (Exception $e) {
             error_log("BlogController::getPublishedBlogs Error: " . $e->getMessage());
-            Response::error('Failed to retrieve blogs', 500);
+            Response::error('Failed to retrieve blogs: ' . $e->getMessage(), 500);
         }
     }
     

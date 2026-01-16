@@ -8,12 +8,17 @@
 // Allow requests from React frontend
 // Update this with your actual frontend domain
 $allowedOrigins = [
+    // Development
     'http://localhost:3000',
     'http://localhost:5173',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:5173',
-    // Add your production frontend URL here
-    // 'https://yourdomain.com'
+    'http://localhost',
+    // Production
+    'https://blogs.indiapropertys.com',
+    'https://www.blogs.indiapropertys.com',
+    'https://indiapropertys.com',
+    'https://www.indiapropertys.com',
 ];
 
 // Get the origin from the request
